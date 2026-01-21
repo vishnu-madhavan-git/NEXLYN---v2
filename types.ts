@@ -49,11 +49,6 @@ export interface HomeContent {
     subtitle: string;
     description: string;
   };
-  stats: {
-    label: string;
-    value: string;
-    icon: string;
-  }[];
   features: {
     title: string;
     description: string;

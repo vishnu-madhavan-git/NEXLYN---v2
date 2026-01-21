@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ICONS, PRODUCTS as INITIAL_PRODUCTS, CATEGORIES, WHATSAPP_NUMBER as INITIAL_WA, ADMIN_PASSCODE, OWNER_PASSCODE, HERO_SLIDES, VISUALS } from './constants';
-import { Product, Message, GroundingSource, Category, HomeContent } from './types';
+import { Product, Message, Category, HomeContent } from './types';
 import { gemini } from './services/geminiService';
 
 // Helper function to get category-specific gradient pattern
@@ -103,14 +103,35 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fetch home content on mount
+  // Fetch home content on mount with caching
   useEffect(() => {
     const fetchHomeData = async () => {
+      // Check cache first (24 hour TTL)
+      const cachedData = localStorage.getItem('nexlyn_home_content');
+      const cacheTimestamp = localStorage.getItem('nexlyn_home_content_timestamp');
+      const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+      
+      if (cachedData && cacheTimestamp) {
+        const age = Date.now() - parseInt(cacheTimestamp, 10);
+        if (age < CACHE_TTL) {
+          try {
+            setHomeContent(JSON.parse(cachedData));
+            return;
+          } catch (e) {
+            // Invalid cache, continue to fetch
+            console.warn('Invalid cached home content, fetching fresh data');
+          }
+        }
+      }
+      
+      // Fetch fresh data
       try {
         const content = await gemini.fetchHomeContent();
         setHomeContent(content);
+        localStorage.setItem('nexlyn_home_content', JSON.stringify(content));
+        localStorage.setItem('nexlyn_home_content_timestamp', Date.now().toString());
       } catch (err) {
-        console.error('Failed to fetch AI-generated home content, using fallback:', err);
+        console.error('Failed to fetch home content from Gemini API, using fallback:', err);
       }
     };
     
@@ -1046,7 +1067,11 @@ const App: React.FC = () => {
                     return (
                       <div key={idx} className="glass-panel p-8 rounded-2xl border border-black/5 dark:border-white/5 hover:border-nexlyn/30 transition-all space-y-4">
                         <div className="w-12 h-12 rounded-xl bg-nexlyn/10 flex items-center justify-center">
-                          {IconComponent ? <IconComponent className="w-6 h-6 text-nexlyn" /> : null}
+                          {IconComponent ? (
+                            <IconComponent className="w-6 h-6 text-nexlyn" />
+                          ) : (
+                            <ICONS.Shield className="w-6 h-6 text-nexlyn opacity-50" />
+                          )}
                         </div>
                         <h3 className="text-lg font-black uppercase text-slate-900 dark:text-white">{feature.title}</h3>
                         <p className="text-sm text-slate-600 dark:text-slate-400">{feature.description}</p>

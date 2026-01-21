@@ -8,14 +8,15 @@ This implementation replaces placeholder content on the home route with **actual
 
 ### 1. AI-Generated Home Content
 - **Hero Section**: Dynamic title, subtitle, and description
-- **Statistics**: Key metrics about your business
 - **Features**: AI-generated feature cards highlighting business benefits
 
-### 2. Live Product Statistics
+### 2. Live Product Statistics (LiveStatsBar)
 - **Total Products**: Dynamically counted from product catalog
 - **In Stock**: Real-time count of available products
 - **Categories**: Automatic category count
 - **Static Metrics**: 24/7 Support, MEA Coverage, Verified status
+
+Note: The LiveStatsBar uses real-time calculations from the local product state, not AI-generated statistics. This ensures the displayed numbers are always accurate and update immediately when products change.
 
 ### 3. LiveStatsBar Component
 A new responsive component displaying 6 key metrics in a horizontal bar:
@@ -36,11 +37,6 @@ export interface HomeContent {
     subtitle: string;
     description: string;
   };
-  stats: {
-    label: string;
-    value: string;
-    icon: string;
-  }[];
   features: {
     title: string;
     description: string;
@@ -107,8 +103,10 @@ If AI fetch fails:
 
 Required in `.env.local`:
 ```bash
-GEMINI_API_KEY=your_api_key_here
+API_KEY=your_gemini_api_key_here
 ```
+
+Note: The environment variable is named `API_KEY` (not `GEMINI_API_KEY`) as configured in `vite.config.ts`.
 
 ### AI Studio Data Source (Optional)
 
@@ -227,10 +225,11 @@ Application continues with fallback content, ensuring zero downtime.
 ## Troubleshooting
 
 ### AI Content Not Showing
-1. Check `.env.local` has valid `GEMINI_API_KEY`
+1. Check `.env.local` has valid `API_KEY` (note: variable name is `API_KEY`, not `GEMINI_API_KEY`)
 2. Check browser console for errors
 3. Verify API key has Gemini API access
 4. Check network tab for API calls
+5. Clear localStorage cache: `localStorage.removeItem('nexlyn_home_content')`
 
 ### Stats Not Updating
 1. Verify products are loaded in state
