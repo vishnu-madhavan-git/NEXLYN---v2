@@ -117,6 +117,7 @@ export class GeminiService {
       
       return parsed;
     } catch (err) {
+      console.error("Failed to fetch home content from Gemini AI, returning fallback content.", err);
       console.error('Failed to fetch home content from Gemini API, returning fallback content:', err);
       return this.getFallbackContent();
     }
