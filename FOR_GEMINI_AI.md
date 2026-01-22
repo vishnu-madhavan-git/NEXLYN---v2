@@ -12,7 +12,7 @@ NEXLYN is a React + TypeScript single-page application (SPA) that serves as an A
 
 ## Complete Documentation Access
 
-This repository contains **4 comprehensive documentation files** totaling **67.4 KB** and **2,956 lines**:
+This repository contains **7 comprehensive documentation files** totaling **97.7 KB** and **4,055 lines**:
 
 ### 1. **DOCUMENTATION_INDEX.md** - Start Here
 Navigation guide to all documentation files and their purposes.
@@ -350,7 +350,7 @@ Get keys from:
 ## TL;DR for Gemini AI
 
 **You now have complete access to:**
-- ✅ Full project documentation (67.4 KB)
+- ✅ Full project documentation (97.7 KB)
 - ✅ Complete codebase reference
 - ✅ All code examples and patterns
 - ✅ Setup, deployment, and integration guides
@@ -363,7 +363,7 @@ Get keys from:
 3. Provide code examples from QUICK_REFERENCE.md
 4. Explain using NEXLYN_COMPLETE_DOCUMENTATION.md
 
-**Everything you need is in these 4 markdown files in this repository.**
+**Everything you need is in these 7 documentation files in this repository.**
 
 ---
 
