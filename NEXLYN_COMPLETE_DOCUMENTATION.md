@@ -41,7 +41,7 @@
 ## 🏗️ Architecture & Technology Stack
 
 ### Frontend Framework
-- **React 18.2.3** - Latest React with concurrent features
+- **React 19.2.3** - Latest React with concurrent features
 - **TypeScript** - Type-safe development
 - **Vite 6.2.0** - Lightning-fast build tool and dev server
 

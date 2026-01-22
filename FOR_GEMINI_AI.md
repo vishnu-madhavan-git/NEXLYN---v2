@@ -251,7 +251,7 @@ const url = await uploadImage(file);
 | cloudinaryService.ts | Images | ~30 lines |
 | types.ts | Types | ~20 lines |
 | **Total Code** | | **~2,500 lines** |
-| **Documentation** | | **~3,000 lines** |
+| **Documentation** | | **~4,055 lines** |
 
 ---
 
