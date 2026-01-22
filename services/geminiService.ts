@@ -24,7 +24,7 @@ If a user asks about pricing, direct them to use the "B2B Quote" or WhatsApp but
 
 export class GeminiService {
   private getAI() {
-    const apiKey = process.env.API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error('Gemini API key is not configured. Please set GEMINI_API_KEY in your .env.local file.');
     }
