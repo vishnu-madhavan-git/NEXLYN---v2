@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ICONS, PRODUCTS as INITIAL_PRODUCTS, CATEGORIES, WHATSAPP_NUMBER as INITIAL_WA, ADMIN_PASSCODE, HERO_SLIDES } from './constants';
-import { Product, Message, GroundingSource, Category } from './types';
-import { gemini } from './services/geminiService';
-import { uploadImage } from './services/cloudinaryService';
+import { Product, Category } from './types';
 
 type ViewType = 'home' | 'products' | 'detail' | 'admin' | 'about';
 type ThemeType = 'light' | 'dark';
@@ -103,7 +101,7 @@ const Header = React.memo(({ isScrolled, searchQuery, setSearchQuery, view, setV
               aria-label="Toggle Theme"
               className="p-3 rounded-2xl border border-black/5 dark:border-white/10 bg-black/5 dark:bg-white/5 hover:border-nexlyn transition-all text-slate-600 dark:text-slate-400 focus:outline-none focus:ring-2 focus:ring-nexlyn"
             >
-              {theme === 'dark' ? <ICONS.Globe className="w-4 h-4" /> : <ICONS.Grid className="w-4 h-4" />}
+              {theme === 'dark' ? <ICONS.Sun className="w-4 h-4" /> : <ICONS.Moon className="w-4 h-4" />}
             </button>
             <button onClick={() => setView('admin')} aria-label="Admin Access" className="p-2 opacity-20 hover:opacity-100 transition-opacity hidden sm:block text-slate-900 dark:text-white focus:opacity-100 focus:outline-none"><ICONS.Shield className="w-5 h-5" /></button>
             
@@ -230,51 +228,12 @@ const AdminView = ({
   products, setProducts, 
   waNumber, setWaNumber, 
   address, setAddress, 
-  aboutContent, setAboutContent 
+  aboutContent, setAboutContent,
+  banners, setBanners
 }: any) => {
   const [passInput, setPassInput] = useState('');
   const [editProduct, setEditProduct] = useState<Partial<Product> | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  // Handle file upload to Cloudinary
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editProduct) return;
-    
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
-      return;
-    }
-    
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
-      return;
-    }
-    
-    setUploadProgress(true);
-    
-    try {
-      // Create local preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      
-      // Upload to Cloudinary
-      const imageUrl = await uploadImage(file);
-      setEditProduct({...editProduct, imageUrl});
-      
-    } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Upload failed. Please try again or use a URL instead.');
-    } finally {
-      setUploadProgress(false);
-    }
-  };
+  const [editBanner, setEditBanner] = useState<Partial<HeroSlide> | null>(null);
 
   const stats = useMemo(() => ({
     total: products.length,
@@ -382,6 +341,34 @@ const AdminView = ({
               ))}
             </div>
           </div>
+
+          <div className="space-y-10">
+            <div className="flex justify-between items-center">
+              <h3 className="text-2xl font-black italic uppercase text-slate-900 dark:text-white tracking-tighter">Home Page <span className="text-nexlyn">Banners</span></h3>
+              <button 
+                onClick={() => setEditBanner({ title: '', subtitle: '', image: '', categoryId: '' })}
+                className="px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-nexlyn hover:text-white transition-all shadow-xl"
+              >Create New Banner</button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {banners.map((banner: HeroSlide, idx: number) => (
+                <div key={idx} className="glass-panel p-6 rounded-3xl border border-black/5 dark:border-white/5 group hover:border-nexlyn/20 transition-all space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="font-black text-slate-900 dark:text-white uppercase italic text-sm">{banner.title.substring(0, 40)}...</div>
+                      <div className="text-[9px] font-black text-nexlyn uppercase tracking-widest mt-1">{banner.categoryId}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditBanner({ ...banner, index: idx })} className="p-3 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors bg-black/5 dark:bg-white/5 rounded-xl text-xs">Edit</button>
+                      <button onClick={() => { if(confirm('Delete Banner?')) setBanners(banners.filter((_: any, i: number) => i !== idx)) }} className="p-3 text-red-500/30 hover:text-red-500 transition-colors bg-red-500/5 rounded-xl text-xs">Del</button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">{banner.subtitle.substring(0, 80)}...</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
       
@@ -408,22 +395,19 @@ const AdminView = ({
                 </select>
               </div>
               <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Product Visual</label>
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Product Visual URL</label>
                 
                 {/* Image Preview */}
-                {(editProduct.imageUrl || imagePreview) && (
+                {editProduct.imageUrl && (
                   <div className="relative w-full h-48 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
                     <img 
-                      src={imagePreview || editProduct.imageUrl} 
+                      src={editProduct.imageUrl} 
                       alt="Product preview" 
                       className="w-full h-full object-cover"
                     />
                     <button
                       type="button"
-                      onClick={() => {
-                        setEditProduct({...editProduct, imageUrl: ''});
-                        setImagePreview(null);
-                      }}
+                      onClick={() => setEditProduct({...editProduct, imageUrl: ''})}
                       className="absolute top-2 right-2 w-8 h-8 bg-nexlyn text-white rounded-full flex items-center justify-center hover:bg-nexlyn/80 transition-colors"
                     >
                       ×
@@ -431,49 +415,16 @@ const AdminView = ({
                   </div>
                 )}
                 
-                {/* Upload Options */}
-                <div className="grid grid-cols-1 gap-4">
-                  {/* File Upload */}
-                  <div className="relative">
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={uploadProgress}
-                      className="hidden" 
-                      id="image-upload"
-                    />
-                    <label 
-                      htmlFor="image-upload"
-                      className={`block w-full p-5 rounded-2xl text-center border-2 border-dashed cursor-pointer transition-all
-                        ${uploadProgress 
-                          ? 'border-nexlyn/50 bg-nexlyn/5 cursor-wait' 
-                          : 'border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 hover:border-nexlyn hover:bg-nexlyn/5'
-                        }`}
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <ICONS.Upload className="w-6 h-6 text-slate-500" />
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                          {uploadProgress ? 'Uploading...' : 'Upload Image File'}
-                        </span>
-                        <span className="text-[10px] text-slate-500 uppercase tracking-wider">
-                          PNG, JPG, WEBP (Max 5MB)
-                        </span>
-                      </div>
-                    </label>
-                  </div>
-                  
-                  {/* Manual URL Entry (fallback) */}
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Or Enter URL Manually</label>
-                    <input 
-                      type="url"
-                      value={editProduct.imageUrl || ''} 
-                      onChange={e => setEditProduct({...editProduct, imageUrl: e.target.value})} 
-                      placeholder="https://example.com/image.jpg"
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-4 rounded-xl text-sm font-bold focus:border-nexlyn focus:outline-none transition-colors" 
-                    />
-                  </div>
+                {/* URL Input */}
+                <div className="space-y-2">
+                  <input 
+                    type="url"
+                    value={editProduct.imageUrl || ''} 
+                    onChange={e => setEditProduct({...editProduct, imageUrl: e.target.value})} 
+                    placeholder="https://example.com/product-image.jpg"
+                    className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-5 rounded-2xl text-sm font-bold focus:border-nexlyn focus:outline-none transition-colors" 
+                  />
+                  <p className="text-[9px] text-slate-500 uppercase tracking-wider">Enter a direct URL to the product image</p>
                 </div>
               </div>
             </div>
@@ -502,6 +453,64 @@ const AdminView = ({
           </div>
         </div>
       )}
+
+      {editBanner && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl animate-in fade-in duration-300">
+          <div className="w-full max-w-3xl glass-panel p-12 rounded-[3rem] space-y-10 max-h-[90vh] overflow-y-auto no-scrollbar border border-nexlyn/20 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-black/5 dark:border-white/5 pb-6">
+                <h3 className="text-3xl font-black italic uppercase text-slate-900 dark:text-white tracking-tighter">Banner <span className="text-nexlyn">Editor</span></h3>
+                <button onClick={() => setEditBanner(null)} className="text-4xl leading-none text-slate-500 hover:text-white">&times;</button>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Banner Title</label>
+                <input value={editBanner.title} onChange={e => setEditBanner({...editBanner, title: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-5 rounded-2xl text-sm font-bold focus:border-nexlyn focus:outline-none transition-colors uppercase" />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Subtitle</label>
+                <textarea value={editBanner.subtitle} onChange={e => setEditBanner({...editBanner, subtitle: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-6 rounded-2xl text-sm h-24 resize-none leading-relaxed focus:border-nexlyn focus:outline-none transition-colors" />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Category</label>
+                <select value={editBanner.categoryId} onChange={e => setEditBanner({...editBanner, categoryId: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-5 rounded-2xl text-sm font-bold focus:border-nexlyn focus:outline-none transition-colors">
+                  <option value="">Select Category</option>
+                  <option value="Routing">Routing</option>
+                  <option value="Switching">Switching</option>
+                  <option value="Wireless">Wireless</option>
+                  <option value="5G/LTE">5G/LTE</option>
+                  <option value="Accessories">Accessories</option>
+                </select>
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Background Image URL</label>
+                <input 
+                  type="url"
+                  value={editBanner.image || ''} 
+                  onChange={e => setEditBanner({...editBanner, image: e.target.value})} 
+                  placeholder="https://example.com/banner-image.jpg"
+                  className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 p-5 rounded-2xl text-sm font-bold focus:border-nexlyn focus:outline-none transition-colors" 
+                />
+                <p className="text-[9px] text-slate-500 uppercase tracking-wider">Enter a direct URL to the banner background image</p>
+              </div>
+            </div>
+            <div className="flex gap-6 pt-6">
+              <button 
+                onClick={() => {
+                  const idx = (editBanner as any).index;
+                  if (idx !== undefined) {
+                    setBanners(banners.map((b: HeroSlide, i: number) => i === idx ? { title: editBanner.title, subtitle: editBanner.subtitle, image: editBanner.image, categoryId: editBanner.categoryId } as HeroSlide : b));
+                  } else {
+                    setBanners([...banners, { title: editBanner.title, subtitle: editBanner.subtitle, image: editBanner.image, categoryId: editBanner.categoryId } as HeroSlide]);
+                  }
+                  setEditBanner(null);
+                }}
+                className="flex-1 py-5 bg-nexlyn text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-2xl shadow-nexlyn/20 hover:scale-[1.02] transition-transform"
+              >Save Banner</button>
+              <button onClick={() => setEditBanner(null)} className="flex-1 py-5 bg-black/10 dark:bg-white/10 text-slate-900 dark:text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black/20 dark:hover:bg-white/20 transition-all">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -524,6 +533,10 @@ const App: React.FC = () => {
   const [aboutContent, setAboutContent] = useState(() => localStorage.getItem('nexlyn_about') || "Nexlyn is a premier MikroTik® Master Distributor based in Dubai, serving the Middle East and Africa. We specialize in providing carrier-grade routing, high-density switching, and professional wireless deployments for internet service providers and large-scale enterprises.");
   const [address, setAddress] = useState(() => localStorage.getItem('nexlyn_address') || "Silicon Oasis, Dubai Digital Park, UAE");
   const [mapUrl, setMapUrl] = useState(() => localStorage.getItem('nexlyn_map_url') || "https://maps.app.goo.gl/971502474482");
+  const [banners, setBanners] = useState<HeroSlide[]>(() => {
+    const saved = localStorage.getItem('nexlyn_banners');
+    return saved ? JSON.parse(saved) : HERO_SLIDES;
+  });
 
   // --- UI STATE ---
   const [view, setView] = useState<ViewType>('home');
@@ -536,15 +549,6 @@ const App: React.FC = () => {
   
   // --- ADMIN STATE (Only auth needed here, rest is in AdminView) ---
   const [isAdmin, setIsAdmin] = useState(false);
-
-  // --- AI CHAT STATE ---
-  const [chatOpen, setChatOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Hello! I am the Nexlyn Grid Expert. I can assist with MikroTik® hardware selection and technical planning. How can I help your business today?' }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
 
   // --- THEME SYNC ---
   useEffect(() => {
@@ -564,7 +568,8 @@ const App: React.FC = () => {
     localStorage.setItem('nexlyn_about', aboutContent);
     localStorage.setItem('nexlyn_address', address);
     localStorage.setItem('nexlyn_map_url', mapUrl);
-  }, [products, waNumber, aboutContent, address, mapUrl]);
+    localStorage.setItem('nexlyn_banners', JSON.stringify(banners));
+  }, [products, waNumber, aboutContent, address, mapUrl, banners]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 30);
@@ -572,17 +577,13 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (chatOpen) chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, chatOpen]);
-
   // Slide transition for Hero
   useEffect(() => {
     if (view === 'home') {
       const interval = setInterval(() => {
         setIsExiting(true);
         setTimeout(() => {
-          setSlideIndex((prev) => (prev + 1) % HERO_SLIDES.length);
+          setSlideIndex((prev) => (prev + 1) % banners.length);
           setIsExiting(false);
         }, 800);
       }, 8000);
@@ -607,54 +608,6 @@ const App: React.FC = () => {
   }, [selectedCat, searchQuery, products]);
 
   // --- ACTIONS ---
-  const handleChat = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const userMsg: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setIsLoading(true);
-
-    const assistantMsg: Message = { role: 'assistant', content: '' };
-    setMessages(prev => [...prev, assistantMsg]);
-
-    try {
-      let accumulatedText = "";
-      let accumulatedSources: GroundingSource[] = [];
-      
-      const stream = gemini.streamTech(input);
-      for await (const chunk of stream) {
-        accumulatedText += chunk.text;
-        if (chunk.sources.length > 0) {
-          accumulatedSources = [...new Set([...accumulatedSources, ...chunk.sources])];
-        }
-        
-        setMessages(prev => {
-          const updated = [...prev];
-          const lastIdx = updated.length - 1;
-          updated[lastIdx] = { 
-            ...updated[lastIdx], 
-            content: accumulatedText, 
-            sources: accumulatedSources 
-          };
-          return updated;
-        });
-      }
-    } catch (err) {
-      setMessages(prev => {
-        const updated = [...prev];
-        updated[updated.length - 1] = { 
-          role: 'assistant', 
-          content: "System interference detected. Please re-initiate the request or contact technical support." 
-        };
-        return updated;
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
   const openWhatsApp = (context?: 'product' | 'reseller' | 'general' | 'category', data?: any) => {
@@ -690,11 +643,11 @@ const App: React.FC = () => {
             <section 
               className="relative h-[100vh] flex items-center justify-center overflow-hidden cursor-pointer"
               onClick={() => {
-                const slide = HERO_SLIDES[slideIndex];
+                const slide = banners[slideIndex];
                 if (slide.categoryId) { setSelectedCat(slide.categoryId); setView('products'); window.scrollTo(0,0); }
               }}
             >
-              {HERO_SLIDES.map((slide, idx) => (
+              {banners.map((slide, idx) => (
                 <div 
                   key={idx}
                   className={`absolute inset-0 transition-all duration-[1200ms] ease-in-out ${idx === slideIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
@@ -717,12 +670,12 @@ const App: React.FC = () => {
                 <div className="inline-flex items-center gap-4 px-8 py-3 glass-panel rounded-full border border-nexlyn/40 stagger-1 shadow-2xl shadow-nexlyn/10">
                   <div className="w-2.5 h-2.5 rounded-full bg-nexlyn animate-pulse shadow-[0_0_15px_rgba(230,0,38,0.8)]" />
                   <span className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-900 dark:text-white">
-                    {HERO_SLIDES[slideIndex].categoryId} <span className="text-nexlyn opacity-50">/</span> <span className="opacity-70 font-bold">Solutions</span>
+                    {banners[slideIndex].categoryId} <span className="text-nexlyn opacity-50">/</span> <span className="opacity-70 font-bold">Solutions</span>
                   </span>
                 </div>
                 
                 <h1 className="text-6xl md:text-[9rem] font-black tracking-tighter leading-[0.8] uppercase italic text-slate-900 dark:text-white stagger-2 drop-shadow-2xl">
-                  {HERO_SLIDES[slideIndex].title.split(' ').map((word, i) => (
+                  {banners[slideIndex].title.split(' ').map((word, i) => (
                     <span key={i} className={i % 2 !== 0 ? 'text-nexlyn' : ''}>
                       {word}{' '}
                     </span>
@@ -730,7 +683,7 @@ const App: React.FC = () => {
                 </h1>
                 
                 <p className="max-w-3xl mx-auto text-slate-700 dark:text-slate-200 text-lg md:text-2xl font-bold leading-relaxed drop-shadow-lg stagger-3 px-4">
-                  {HERO_SLIDES[slideIndex].subtitle}
+                  {banners[slideIndex].subtitle}
                 </p>
                 
                 <div className="flex flex-wrap justify-center gap-6 pt-10 stagger-4">
@@ -1011,71 +964,14 @@ const App: React.FC = () => {
             setAddress={setAddress}
             aboutContent={aboutContent}
             setAboutContent={setAboutContent}
+            banners={banners}
+            setBanners={setBanners}
           />
         )}
       </main>
 
-      {/* AI SIDE PANEL */}
-      <div className={`fixed inset-y-0 right-0 w-full md:w-[480px] z-[200] transition-transform duration-[800ms] cubic-bezier(0.16, 1, 0.3, 1) ${chatOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="h-full glass-panel border-l border-black/10 dark:border-white/10 flex flex-col shadow-2xl backdrop-blur-3xl">
-          <div className="p-10 border-b border-black/10 dark:border-white/10 flex justify-between items-center bg-black/[0.04] dark:bg-white/[0.04]">
-            <div className="flex items-center gap-5">
-              <div className="w-14 h-14 bg-nexlyn rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-nexlyn/40 group overflow-hidden relative">
-                <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                <ICONS.Bolt className="w-8 h-8 relative z-10" />
-              </div>
-              <div>
-                <h3 className="font-black text-2xl italic uppercase text-slate-900 dark:text-white tracking-tighter">Grid Expert</h3>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-                  <span className="text-[10px] font-black uppercase text-nexlyn tracking-widest">NEX-AI Active</span>
-                </div>
-              </div>
-            </div>
-            <button onClick={() => setChatOpen(false)} aria-label="Close Chat" className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-nexlyn text-3xl font-light transition-colors focus:outline-none focus:text-nexlyn">&times;</button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-10 space-y-10 no-scrollbar">
-            {messages.map((m, i) => (
-              <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in slide-in-from-bottom-2 duration-500`}>
-                <div className={`max-w-[95%] p-7 rounded-3xl text-sm leading-relaxed font-medium ${m.role === 'user' ? 'bg-nexlyn text-white rounded-tr-none shadow-xl shadow-nexlyn/20' : 'glass-panel text-slate-700 dark:text-slate-300 rounded-tl-none border border-black/5 dark:border-white/10'}`}>
-                   {m.content || (isLoading && i === messages.length - 1 ? <span className="flex gap-1 items-center">Generating <span className="animate-pulse">...</span></span> : m.content)}
-                   {m.sources && m.sources.length > 0 && (
-                      <div className="mt-6 pt-6 border-t border-black/10 dark:border-white/10 space-y-3">
-                         <div className="text-[10px] font-black uppercase text-nexlyn tracking-widest">Verified Intelligence Sources:</div>
-                         <div className="flex flex-wrap gap-2">
-                            {m.sources.map((s, idx) => (
-                               <a key={idx} href={s.uri} target="_blank" className="px-4 py-1.5 glass-panel border border-black/5 dark:border-white/5 rounded-full text-[10px] font-bold text-slate-500 hover:text-nexlyn hover:border-nexlyn transition-all truncate max-w-[150px]">{s.title}</a>
-                            ))}
-                         </div>
-                      </div>
-                   )}
-                </div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-          <form onSubmit={handleChat} className="p-10 border-t border-black/10 dark:border-white/10 bg-white/40 dark:bg-black/40 backdrop-blur-md">
-            <div className="relative">
-              <input 
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder="Query hardware metrics or network design..."
-                className="w-full glass-panel py-6 px-8 rounded-2xl border border-black/10 dark:border-white/10 focus:outline-none focus:border-nexlyn text-sm font-bold text-slate-900 dark:text-white shadow-inner"
-              />
-              <button type="submit" disabled={isLoading || !input.trim()} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-nexlyn text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-110 disabled:opacity-50 disabled:scale-100 transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-nexlyn">
-                <ICONS.ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
+      {/* WhatsApp Contact Button */}
       <div className="fixed bottom-12 right-12 z-[150] flex flex-col items-end gap-6">
-        <button onClick={() => setChatOpen(true)} aria-label="Open AI Assistant" className="w-20 h-20 glass-panel border border-black/10 dark:border-white/10 text-slate-900 dark:text-white rounded-[2rem] flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all group overflow-hidden relative focus:outline-none focus:ring-2 focus:ring-nexlyn">
-          <div className="absolute inset-0 bg-nexlyn opacity-0 group-hover:opacity-10 transition-opacity" />
-          <ICONS.Bolt className="w-10 h-10 relative z-10 text-nexlyn" />
-        </button>
-        
         <div className="relative group">
           <div className="absolute inset-0 bg-[#25D366] rounded-[2rem] animate-sonar pointer-events-none" />
           <button 
@@ -1120,6 +1016,9 @@ const App: React.FC = () => {
                <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-900 dark:text-white">Notice</h4>
                <p className="text-[10px] text-slate-500 dark:text-slate-600 leading-relaxed font-bold uppercase italic tracking-tight opacity-70">
                  NEXLYN Distributions LLC is an independent authorized MikroTik® Master Distributor. All hardware systems are genuine and factory-sealed. Trading governed by DIFC and international export law.
+               </p>
+               <p className="text-[9px] text-slate-500 dark:text-slate-600 leading-relaxed font-medium tracking-tight opacity-60">
+                 MikroTik® is a registered trademark of Mikrotikls SIA. NEXLYN is not affiliated with or endorsed by Mikrotikls SIA beyond our authorized distributor status. All trademarks and product names are the property of their respective owners.
                </p>
                <div className="pt-4">
                   <div className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Authorized Status:</div>
