@@ -1,0 +1,197 @@
+/* styles/globals.css - Design System Foundation */
+
+@import "tailwindcss";
+
+/* Custom Theme Configuration for Tailwind v4 */
+@theme {
+  /* Navy Scale - Authority & Trust (Hue 260) */
+  --color-navy-950: oklch(15% 0.05 260);
+  --color-navy-900: oklch(20% 0.08 260);
+  --color-navy-800: oklch(30% 0.1 260);
+  --color-navy-700: oklch(40% 0.12 260);
+
+  /* Teal Scale - Action & Growth (Hue 190) */
+  --color-teal-500: oklch(65% 0.18 190);
+  --color-teal-400: oklch(72% 0.15 190);
+  --color-teal-300: oklch(80% 0.12 190);
+
+  /* NEXLYN Brand Color */
+  --color-nexlyn: #E60026;
+  --color-nexlyn-glow: #FF1A3D;
+  --color-nexlyn-dark: #1A0005;
+}
+
+/* OKLCH Color Variables (CSS Custom Properties) */
+:root {
+  /* Text Colors */
+  --color-text-primary: oklch(95% 0.02 260);
+  --color-text-secondary: oklch(80% 0.02 260);
+  --color-text-tertiary: oklch(60% 0.01 260);
+  --color-text-muted: oklch(50% 0.01 260);
+
+  /* Status Colors */
+  --color-success: oklch(70% 0.18 140);
+  --color-warning: oklch(65% 0.18 70);
+  --color-error: oklch(60% 0.2 25);
+  --color-info: oklch(65% 0.15 240);
+
+  /* Spacing (8pt Grid) */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --space-32: 128px;
+}
+
+/* Base layer styles */
+@layer base {
+  html {
+    font-family: var(--font-geist-sans), 'Plus Jakarta Sans', 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-navy-950);
+    color: var(--color-text-primary);
+  }
+
+  /* Tabular numerals for prices and numbers */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Typography Scale */
+@layer components {
+  /* Display (Headings - Tight tracking) */
+  .text-display-xl {
+    font-size: 48px;
+    line-height: 56px;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+  }
+
+  .text-display-lg {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  .text-display-md {
+    font-size: 28px;
+    line-height: 36px;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  .text-display-sm {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+  }
+
+  /* Body (Reading content) */
+  .text-body-lg {
+    font-size: 18px;
+    line-height: 28px;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  .text-body-base {
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  .text-body-sm {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  /* UI/Labels (Looser tracking for small sizes) */
+  .text-ui-sm {
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.01em;
+    font-weight: 500;
+  }
+
+  .text-ui-xs {
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+  }
+
+  /* Monospace (Technical data - SKUs, IDs) */
+  .text-mono-sm {
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 13px;
+    line-height: 20px;
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-mono-xs {
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Deep Glass Panel */
+  .glass-panel {
+    background: oklch(20% 0.08 260 / 0.65);
+    backdrop-filter: blur(20px);
+    border: 1px solid oklch(100% 0 0 / 0.1);
+  }
+
+  /* Background patterns */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: 
+      linear-gradient(oklch(65% 0.18 190 / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(65% 0.18 190 / 0.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  .bg-dots {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: radial-gradient(oklch(65% 0.18 190 / 0.08) 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 15px oklch(65% 0.18 190 / 0.3);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
