@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
     },
     css: {
-      postcss: './postcss.config.js',
+      postcss: './postcss.config.cjs',
     },
     resolve: {
       alias: {

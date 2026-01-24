@@ -1,5 +1,4 @@
 // components/layout/Header.tsx
-'use client';
 import { useState } from 'react';
 import { WhatsAppIcon, PhoneIcon, EmailIcon } from '@/components/icons';
 
